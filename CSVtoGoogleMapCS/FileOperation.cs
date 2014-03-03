@@ -4,19 +4,49 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GPStoGoogleMap
+namespace CSVtoGoogleMapCS
 {
     class FileOperation
     {
         public String InputFilePath { get; set; }
         public String OutputDirctoryPath { get; set; }
+        List<GPSData> gpsdatalist;
 
         public Boolean calcLogToGoogleMap()
         {
+            setGPSDataList();
+            DataOperation dataoperation = new DataOperation(gpsdatalist);
+            dataoperation.requestStationNameList(gpsdatalist[0]);
             csvToHTML();
             csvToHTMLGraph();
 
             return true;
+        }
+
+        private Boolean setGPSDataList()
+        {
+            gpsdatalist = new List<GPSData>();
+            if (this.InputFilePath == null)
+            {
+                return false;
+            }
+
+            System.IO.StreamReader srcsv = new System.IO.StreamReader(InputFilePath);
+            //ヘッダー行
+            String strcsv = srcsv.ReadLine();
+            //内容1行目
+            strcsv = srcsv.ReadLine();
+            while (strcsv != null)
+            {
+                String[] contents = strcsv.Split(',');
+                gpsdatalist.Add(new GPSData(DateTime.Parse(contents[0]),double.Parse(contents[1]),double.Parse(contents[2])));
+                strcsv = srcsv.ReadLine();
+            }
+            srcsv.Close();
+    
+            
+            return true;
+
         }
 
         

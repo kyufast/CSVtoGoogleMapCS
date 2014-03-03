@@ -1,4 +1,4 @@
-﻿namespace GPStoGoogleMap
+﻿namespace CSVtoGoogleMapCS
 {
     partial class Form1
     {
