@@ -10,13 +10,13 @@ namespace CSVtoGoogleMapCS
     {
         public String InputFilePath { get; set; }
         public String OutputDirctoryPath { get; set; }
-        List<GPSData> gpsdatalist;
+        List<GPSHistoryData> gpsdatalist= new List<GPSHistoryData>();
 
         public Boolean calcLogToGoogleMap()
         {
             setGPSDataList();
             DataOperation dataoperation = new DataOperation(gpsdatalist);
-            dataoperation.requestStationNameList(gpsdatalist[0]);
+            dataoperation.requestStationList(gpsdatalist[0]);
             csvToHTML();
             csvToHTMLGraph();
 
@@ -25,7 +25,6 @@ namespace CSVtoGoogleMapCS
 
         private Boolean setGPSDataList()
         {
-            gpsdatalist = new List<GPSData>();
             if (this.InputFilePath == null)
             {
                 return false;
@@ -39,7 +38,7 @@ namespace CSVtoGoogleMapCS
             while (strcsv != null)
             {
                 String[] contents = strcsv.Split(',');
-                gpsdatalist.Add(new GPSData(DateTime.Parse(contents[0]),double.Parse(contents[1]),double.Parse(contents[2])));
+                gpsdatalist.Add(new GPSHistoryData(DateTime.Parse(contents[0]),double.Parse(contents[1]),double.Parse(contents[2])));
                 strcsv = srcsv.ReadLine();
             }
             srcsv.Close();
