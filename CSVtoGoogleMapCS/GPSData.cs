@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSVtoGoogleMapCS
 {
-    class GPSData
+    public class GPSData
     {
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }

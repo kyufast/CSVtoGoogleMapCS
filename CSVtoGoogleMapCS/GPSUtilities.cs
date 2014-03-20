@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSVtoGoogleMapCS
 {
-    class GPSUtilities
+    public static class GPSUtilities
     {
         //  http://yamadarake.jp/trdi/report000001.html
         public const double GRS80_A = 6378137.000;
@@ -47,9 +47,24 @@ namespace CSVtoGoogleMapCS
 
 
 
-        public static double postionToDistanceM(GPSData prepos ,GPSData nowpos)
+        public static double postionToDistanceM(GPSData nowpos, GPSData prepos)
         {
             return calcDistHubeny(prepos.Latitude, prepos.Longitude, nowpos.Latitude, nowpos.Longitude);
+        }
+
+        public static double speedKMPerhour(GPSHistoryData nowpos , GPSHistoryData prepos)
+        {
+            double distance = postionToDistanceM(prepos, nowpos);
+
+            TimeSpan ts = (nowpos.Datetime - prepos.Datetime);
+            if (ts.TotalSeconds != 0)
+            {
+                return (distance / ts.TotalSeconds) * ((double)60 * (double)60)/(double)1000;
+            }
+            else
+            {
+                return -1;
+            }
         }
     }
 }

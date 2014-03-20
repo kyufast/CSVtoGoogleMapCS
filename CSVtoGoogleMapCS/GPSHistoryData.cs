@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace CSVtoGoogleMapCS
 {
-    class GPSHistoryData : GPSData
+    public class GPSHistoryData : GPSData
     {
 
-        public DateTime Date { get; private set; }
+        public DateTime Datetime { get; private set; }
 
         public GPSHistoryData(DateTime date, double latitude, double longitude)
             : base(latitude, longitude)
         {
-            this.Date = date;
+            this.Datetime = date;
         }
     }
 }

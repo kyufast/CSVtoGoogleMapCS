@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSVtoGoogleMapCS
 {
-    class FileOperation
+    public class FileOperation
     {
         public String InputFilePath { get; set; }
         public String OutputDirctoryPath { get; set; }

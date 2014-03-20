@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CSVtoGoogleMapCS
 {
-    class ClosestStation : Station
+    public class ClosestStation : Station
     {
         public ClosestStation(String distance, String line, String name, String next, int postal, String prev, double x, double y)
         {

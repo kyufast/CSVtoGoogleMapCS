@@ -12,19 +12,17 @@ using System.Runtime.Serialization.Json;
 
 namespace CSVtoGoogleMapCS
 {
-    enum MovingStatus{
-        ontrain, stopping, walking, others
-    }
-    class DataOperation
+    
+    public class DataOperation
     {
         List<GPSHistoryData> gpsdatalist { get; set; }
-        List<GPSHistoryData> formatgpslist { get; set; }
+        List<GPSFormatHistoryData> formatgpsdatalist { get; set; }
         public  List<MoveGPSStationHistory> movestationhistory { get; private set;}
 
         public DataOperation(List<GPSHistoryData> gpsdatalist)
         {
             this.gpsdatalist = gpsdatalist;
-            formatgpslist = new List<GPSHistoryData>();
+            formatgpsdatalist = new List<GPSFormatHistoryData>();
             formatGpsHistroyList();
             movestationhistory = calcStation();
 
@@ -34,7 +32,7 @@ namespace CSVtoGoogleMapCS
         {
             GPSHistoryData nowhistory = null;
             GPSHistoryData nexthistory = null;
-
+            List<GPSHistoryData> formatgpslist = new List<GPSHistoryData>();
             foreach (var historydata in gpsdatalist)
             {
                 if (nowhistory == null)
@@ -44,13 +42,13 @@ namespace CSVtoGoogleMapCS
                     continue;
                 }
                 nexthistory = historydata;
-                if (!nowhistory.Date.AddSeconds(1).Equals(nexthistory.Date))
+                if (!nowhistory.Datetime.AddSeconds(1).Equals(nexthistory.Datetime))
                 {
-                    TimeSpan ts = nexthistory.Date - nowhistory.Date;
+                    TimeSpan ts = nexthistory.Datetime - nowhistory.Datetime;
                     int diff = (int)ts.TotalSeconds;
                     for (int i = 1; i <= diff; i++)
                     {
-                        formatgpslist.Add(new GPSHistoryData(nowhistory.Date.AddSeconds(i), nowhistory.Latitude + (nexthistory.Latitude - nowhistory.Latitude) / (double)diff * i, nowhistory.Longitude + (nexthistory.Longitude - nowhistory.Longitude) / (double)diff * i));
+                        formatgpslist.Add(new GPSHistoryData(nowhistory.Datetime.AddSeconds(i), nowhistory.Latitude + (nexthistory.Latitude - nowhistory.Latitude) / (double)diff * i, nowhistory.Longitude + (nexthistory.Longitude - nowhistory.Longitude) / (double)diff * i));
                     }
                 }
                 else
@@ -60,30 +58,83 @@ namespace CSVtoGoogleMapCS
 
                 nowhistory = nexthistory;
             }
+
+
+            GPSHistoryData nowhistory2 = null;
+            GPSHistoryData nexthistory2 = null;
+            GPSHistoryData[] formatgpsarr = formatgpslist.ToArray();
+            foreach (var historydata in formatgpsarr)
+            {
+                if (nowhistory2 == null)
+                {
+                    nowhistory2 = historydata;
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, GPSUtilities.speedKMPerhour(formatgpsarr[1],formatgpsarr[0])));
+                    continue;
+                }
+                nexthistory2 = historydata;
+                formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, GPSUtilities.speedKMPerhour(nexthistory2, nowhistory2)));
+                nowhistory2 = nexthistory2;
+            }
+            foreach (var tempformat in formatgpsdatalist)
+            {
+                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", tempformat.Latitude, tempformat.Longitude, tempformat.speed);
+            }
             return true;
         }
 
         private List<MoveGPSStationHistory> calcStation()
         {
             List<MoveGPSStationHistory> movestationlist = new List<MoveGPSStationHistory>();
-            List<GPSHistoryData> tempgpshis = new List<GPSHistoryData>();
-            MovingStatus nowstatus;
+            List<GPSFormatHistoryData> tempgpshis = new List<GPSFormatHistoryData>();
+            Person person = new Person();
 
-            GPSHistoryData[] gpsdataarray = gpsdatalist.ToArray();
+            GPSFormatHistoryData[] formatgpsdataarray = formatgpsdatalist.ToArray();
 
-            if(gpsdataarray == null){
+            if(formatgpsdataarray == null){
                 return null;
             }
 
-            //初めに動いているかどうか
-            if((gpsdataarray[0].Latitude == gpsdataarray[1].Latitude) && (gpsdataarray[0].Longitude == gpsdataarray[1].Longitude)){
+            foreach (var gpsdata in formatgpsdataarray)
+            {
+                //始め
+                if (person.getStatus() == Person.MovingStatus.start)
+                {
+                    if (gpsdata.speed <= 1.0)
+                    {
+                        person.setStatusStopping();
+                    }
+                    else
+                    {
+                        person.setStatusOnTrain();
+                    }
+                    continue;
+                }
 
+                //2つ目以降
+                if (Person.MovingStatus.ontrain == person.getStatus())
+                {
+                    if (gpsdata.speed <= 0.5)
+                    {
+                        person.setStatusStopping();
+                        tempgpshis.Add(gpsdata);
+                    }
+                }
+                else if (Person.MovingStatus.stopping == person.getStatus())
+                {
+                    if (gpsdata.speed > 15.0)
+                    {
+                        person.setStatusOnTrain();
+                    }
+                }
+
+                
             }
-            
-            //動き出す
 
-            //止まる
-            
+
+            foreach (var temp in tempgpshis)
+            {
+                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
+            }
 
 
             return movestationlist;
@@ -117,7 +168,7 @@ namespace CSVtoGoogleMapCS
             Debug.WriteLine("record count: " + closeststaion.response.station.Count);
             foreach (var r in closeststaion.response.station)
             {
-                Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name,r.next,r.postal,r.prev,r.x,r.y);
+                //Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name,r.next,r.postal,r.prev,r.x,r.y);
             }
             return ClosestStationResultConvertToClosestStationList(closeststaion);
         }
