@@ -126,16 +126,15 @@ namespace CSVtoGoogleMapCS
                         person.setStatusOnTrain();
                     }
                 }
-
                 
             }
 
-
             foreach (var temp in tempgpshis)
             {
-                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
-            }
 
+                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
+                requestStationList(temp);
+            }
 
             return movestationlist;
         }
@@ -145,12 +144,12 @@ namespace CSVtoGoogleMapCS
         public List<ClosestStation> requestStationList(GPSHistoryData postion)
         {
             String baseurl = "http://express.heartrails.com/api/json?method=getStations";
-            //String x = postion.Latitude.ToString();
-            //String y = postion.Longitude.ToString();
+            String x = postion.Longitude.ToString();
+            String y = postion.Latitude.ToString();
             //String x = "135.0";
             //String y = "35.0";
-            String x = "139.766092";
-            String y = "35.681283";
+            //String x = "139.766092";
+            //String y = "35.681283";
             String url = baseurl + "&x=" + x + "&y=" + y;
 
             var req = WebRequest.Create(url);
@@ -168,7 +167,7 @@ namespace CSVtoGoogleMapCS
             Debug.WriteLine("record count: " + closeststaion.response.station.Count);
             foreach (var r in closeststaion.response.station)
             {
-                //Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name,r.next,r.postal,r.prev,r.x,r.y);
+                Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name, r.next, r.postal, r.prev, r.x, r.y);
             }
             return ClosestStationResultConvertToClosestStationList(closeststaion);
         }

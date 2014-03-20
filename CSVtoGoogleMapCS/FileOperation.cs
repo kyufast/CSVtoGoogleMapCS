@@ -16,7 +16,7 @@ namespace CSVtoGoogleMapCS
         {
             setGPSDataList();
             DataOperation dataoperation = new DataOperation(gpsdatalist);
-            dataoperation.requestStationList(gpsdatalist[0]);
+            //dataoperation.requestStationList(gpsdatalist[0]);
             csvToHTML();
             csvToHTMLGraph();
 
