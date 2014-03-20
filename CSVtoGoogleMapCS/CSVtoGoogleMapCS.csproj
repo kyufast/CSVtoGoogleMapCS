@@ -60,7 +60,9 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="GPSData.cs" />
+    <Compile Include="GPSFormatHistoryData.cs" />
     <Compile Include="GPSHistoryData.cs" />
+    <Compile Include="GPSUtilities.cs" />
     <Compile Include="MoveGPSStationHistory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -12,16 +12,22 @@ using System.Runtime.Serialization.Json;
 
 namespace CSVtoGoogleMapCS
 {
+    enum MovingStatus{
+        ontrain, stopping, walking, others
+    }
     class DataOperation
     {
         List<GPSHistoryData> gpsdatalist { get; set; }
         List<GPSHistoryData> formatgpslist { get; set; }
+        public  List<MoveGPSStationHistory> movestationhistory { get; private set;}
 
         public DataOperation(List<GPSHistoryData> gpsdatalist)
         {
             this.gpsdatalist = gpsdatalist;
             formatgpslist = new List<GPSHistoryData>();
             formatGpsHistroyList();
+            movestationhistory = calcStation();
+
         }
 
         private Boolean formatGpsHistroyList()
@@ -60,8 +66,19 @@ namespace CSVtoGoogleMapCS
         private List<MoveGPSStationHistory> calcStation()
         {
             List<MoveGPSStationHistory> movestationlist = new List<MoveGPSStationHistory>();
+            List<GPSHistoryData> tempgpshis = new List<GPSHistoryData>();
+            MovingStatus nowstatus;
+
+            GPSHistoryData[] gpsdataarray = gpsdatalist.ToArray();
+
+            if(gpsdataarray == null){
+                return null;
+            }
+
             //初めに動いているかどうか
-            
+            if((gpsdataarray[0].Latitude == gpsdataarray[1].Latitude) && (gpsdataarray[0].Longitude == gpsdataarray[1].Longitude)){
+
+            }
             
             //動き出す
 
