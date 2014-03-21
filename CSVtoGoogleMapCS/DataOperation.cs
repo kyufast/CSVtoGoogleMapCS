@@ -31,69 +31,62 @@ namespace CSVtoGoogleMapCS
 
         private Boolean formatGpsHistroyList()
         {
+            GPSHistoryData prehistory = null;
             GPSHistoryData nowhistory = null;
-            GPSHistoryData nexthistory = null;
-            List<GPSHistoryData> formatgpslist = new List<GPSHistoryData>();
-            foreach (var historydata in gpsdatalist)
+            GPSHistoryData[] gpsdataarray = gpsdatalist.ToArray();
+
+            double prespeed = 0;
+            double nowspeed = 0;
+            foreach (var historydata in gpsdataarray)
             {
-                if (nowhistory == null)
+                if (prehistory == null)
                 {
-                    nowhistory = historydata;
-                    formatgpslist.Add(historydata);
+                    prespeed = GPSUtilities.speedKMPerhour(gpsdataarray[1], gpsdataarray[0]);
+                    nowspeed = prespeed;
+                    prehistory = historydata;
+                    nowhistory = prehistory;
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(nowhistory, nowspeed));
                     continue;
                 }
-                nexthistory = historydata;
-                if (!nowhistory.Datetime.AddSeconds(1).Equals(nexthistory.Datetime))
+                nowhistory = historydata;
+                nowspeed = GPSUtilities.speedKMPerhour(nowhistory, prehistory);
+                if (!prehistory.Datetime.AddSeconds(1).Equals(nowhistory.Datetime))
                 {
-                    TimeSpan ts = nexthistory.Datetime - nowhistory.Datetime;
+                    TimeSpan ts = nowhistory.Datetime - prehistory.Datetime;
                     int diff = (int)ts.TotalSeconds;
-                    for (int i = 1; i <= diff; i++)
+                    if ((prehistory.Latitude == nowhistory.Latitude) && (prehistory.Longitude == nowhistory.Longitude) && (prespeed >= 10))
                     {
-                        formatgpslist.Add(new GPSHistoryData(nowhistory.Datetime.AddSeconds(i), nowhistory.Latitude + (nexthistory.Latitude - nowhistory.Latitude) / (double)diff * i, nowhistory.Longitude + (nexthistory.Longitude - nowhistory.Longitude) / (double)diff * i));
+                        for (int i = 1; i <= diff; i++)
+                        {
+                            formatgpsdatalist.Add(new GPSFormatHistoryData(
+                                new GPSHistoryData(prehistory.Datetime.AddSeconds(i), prehistory.Latitude + (nowhistory.Latitude - prehistory.Latitude) / (double)diff * i, prehistory.Longitude + (nowhistory.Longitude - prehistory.Longitude) / (double)diff * i),
+                                prespeed));
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= diff; i++)
+                        {
+                            formatgpsdatalist.Add(new GPSFormatHistoryData(
+                                new GPSHistoryData(prehistory.Datetime.AddSeconds(i), prehistory.Latitude + (nowhistory.Latitude - prehistory.Latitude) / (double)diff * i, prehistory.Longitude + (nowhistory.Longitude - prehistory.Longitude) / (double)diff * i),
+                                nowspeed));
+                        }
                     }
                 }
                 else
                 {
-                    formatgpslist.Add(nexthistory);
+                    nowspeed = GPSUtilities.speedKMPerhour(nowhistory, prehistory);
+                    if((nowspeed == 0)&&(prespeed>=10))
+                    {
+                        formatgpsdatalist.Add(new GPSFormatHistoryData(nowhistory, prespeed));
+                    }
+                    else
+                    {
+                        formatgpsdatalist.Add(new GPSFormatHistoryData(nowhistory, nowspeed));
+                    }
                 }
-
-                nowhistory = nexthistory;
-            }
-
-
-            GPSHistoryData nowhistory2 = null;
-            GPSHistoryData nexthistory2 = null;
-            GPSHistoryData[] formatgpsarr = formatgpslist.ToArray();
-            double preprespeed = 0;
-            double prespeed = 0;
-            double nowspeed = 0;
-            foreach (var historydata in formatgpsarr)
-            {
-                if (nowhistory2 == null)
-                {
-                    nowhistory2 = historydata;
-                    preprespeed = GPSUtilities.speedKMPerhour(formatgpsarr[1],formatgpsarr[0]);
-                    prespeed = preprespeed;
-                    nowspeed = prespeed;
-                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, nowspeed));
-                    continue;
-                }
-                nexthistory2 = historydata;
-                nowspeed =  GPSUtilities.speedKMPerhour(nexthistory2, nowhistory2);
-                if((nowspeed == 0)&&(prespeed == 0)&&(preprespeed >= 15)){
-                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, preprespeed));
-                }
-                if ((nowspeed == 0) && (prespeed >= 10))
-                {
-                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, prespeed));
-                }
-                else
-                {
-                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, nowspeed));
-                }
-                preprespeed = prespeed;
+                prehistory = nowhistory;
                 prespeed = nowspeed;
-                nowhistory2 = nexthistory2;
             }
 
 
@@ -174,9 +167,21 @@ namespace CSVtoGoogleMapCS
             int j = 0;
             foreach (var closeststationlist in listrawcloseststationlist)
             {
-                Debug.WriteLine(j+": "+closeststationlist[0].name);
                 j++;
+                Debug.WriteLine(j+": "+closeststationlist[0].name);
             }
+
+            System.IO.StreamWriter sw2 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebug.csv");
+            sw2.WriteLine("最寄駅一覧"+","+"駅名"+","+"路線名"+","+"距離"+","+"前の駅"+","+"次の駅"+","+"駅の緯度"+","+"駅の経度");
+            foreach (var closeststationlist in listrawcloseststationlist)
+            {
+                sw2.WriteLine("停止");
+                foreach (var closeststation in closeststationlist)
+                {
+                    sw2.WriteLine("," + closeststation.name + ","+ closeststation.line+","+closeststation.distance+","+closeststation.prev+","+closeststation.next+","+closeststation.x+","+closeststation.y);
+                }
+            }
+            sw2.Close();
 
             return movestationlist;
         }
