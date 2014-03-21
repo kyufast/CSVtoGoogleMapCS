@@ -18,11 +18,12 @@ namespace CSVtoGoogleMapCS
         List<GPSHistoryData> gpsdatalist { get; set; }
         List<GPSFormatHistoryData> formatgpsdatalist { get; set; }
         public  List<MoveGPSStationHistory> movestationhistory { get; private set;}
-
+        public List<List<ClosestStation>> listrawcloseststationlist { get; set; }
         public DataOperation(List<GPSHistoryData> gpsdatalist)
         {
             this.gpsdatalist = gpsdatalist;
             formatgpsdatalist = new List<GPSFormatHistoryData>();
+            listrawcloseststationlist = new List<List<ClosestStation>>();
             formatGpsHistroyList();
             movestationhistory = calcStation();
 
@@ -63,22 +64,47 @@ namespace CSVtoGoogleMapCS
             GPSHistoryData nowhistory2 = null;
             GPSHistoryData nexthistory2 = null;
             GPSHistoryData[] formatgpsarr = formatgpslist.ToArray();
+            double preprespeed = 0;
+            double prespeed = 0;
+            double nowspeed = 0;
             foreach (var historydata in formatgpsarr)
             {
                 if (nowhistory2 == null)
                 {
                     nowhistory2 = historydata;
-                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, GPSUtilities.speedKMPerhour(formatgpsarr[1],formatgpsarr[0])));
+                    preprespeed = GPSUtilities.speedKMPerhour(formatgpsarr[1],formatgpsarr[0]);
+                    prespeed = preprespeed;
+                    nowspeed = prespeed;
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, nowspeed));
                     continue;
                 }
                 nexthistory2 = historydata;
-                formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, GPSUtilities.speedKMPerhour(nexthistory2, nowhistory2)));
+                nowspeed =  GPSUtilities.speedKMPerhour(nexthistory2, nowhistory2);
+                if((nowspeed == 0)&&(prespeed == 0)&&(preprespeed >= 15)){
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, preprespeed));
+                }
+                if ((nowspeed == 0) && (prespeed >= 10))
+                {
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, prespeed));
+                }
+                else
+                {
+                    formatgpsdatalist.Add(new GPSFormatHistoryData(historydata, nowspeed));
+                }
+                preprespeed = prespeed;
+                prespeed = nowspeed;
                 nowhistory2 = nexthistory2;
             }
+
+
+            System.IO.StreamWriter sw = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\test.csv");
             foreach (var tempformat in formatgpsdatalist)
             {
-                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", tempformat.Latitude, tempformat.Longitude, tempformat.speed);
+                sw.WriteLine(tempformat.Datetime+","+tempformat.Latitude+","+tempformat.Longitude+","+tempformat.speed);
+                //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", tempformat.Latitude, tempformat.Longitude, tempformat.speed);
             }
+            //閉じる
+            sw.Close();
             return true;
         }
 
@@ -86,6 +112,7 @@ namespace CSVtoGoogleMapCS
         {
             List<MoveGPSStationHistory> movestationlist = new List<MoveGPSStationHistory>();
             List<GPSFormatHistoryData> tempgpshis = new List<GPSFormatHistoryData>();
+            
             Person person = new Person();
 
             GPSFormatHistoryData[] formatgpsdataarray = formatgpsdatalist.ToArray();
@@ -94,8 +121,10 @@ namespace CSVtoGoogleMapCS
                 return null;
             }
 
+            int i = 0;
             foreach (var gpsdata in formatgpsdataarray)
             {
+                i++;
                 //始め
                 if (person.getStatus() == Person.MovingStatus.start)
                 {
@@ -117,6 +146,7 @@ namespace CSVtoGoogleMapCS
                     {
                         person.setStatusStopping();
                         tempgpshis.Add(gpsdata);
+                        Debug.WriteLine("line={0}", i);
                     }
                 }
                 else if (Person.MovingStatus.stopping == person.getStatus())
@@ -128,12 +158,24 @@ namespace CSVtoGoogleMapCS
                 }
                 
             }
-
+            Debug.WriteLine(tempgpshis.Count());
+            System.IO.StreamWriter sw = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\test2.csv");
+            foreach (var value in tempgpshis)
+            {
+                sw.WriteLine(value.Datetime + "," + value.Latitude + "," + value.Longitude + "," + value.speed);
+            }
+            sw.Close();
             foreach (var temp in tempgpshis)
             {
 
-                Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
-                requestStationList(temp);
+                //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
+                listrawcloseststationlist.Add(requestStationList(temp));
+            }
+            int j = 0;
+            foreach (var closeststationlist in listrawcloseststationlist)
+            {
+                Debug.WriteLine(j+": "+closeststationlist[0].name);
+                j++;
             }
 
             return movestationlist;
@@ -163,11 +205,11 @@ namespace CSVtoGoogleMapCS
                     closeststaion = (ClosestStationResult)serializer.ReadObject(resStream);
                 }
             }
-            Debug.WriteLine("message: " + closeststaion.response);
-            Debug.WriteLine("record count: " + closeststaion.response.station.Count);
+            //Debug.WriteLine("message: " + closeststaion.response);
+            //Debug.WriteLine("record count: " + closeststaion.response.station.Count);
             foreach (var r in closeststaion.response.station)
             {
-                Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name, r.next, r.postal, r.prev, r.x, r.y);
+                //Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name, r.next, r.postal, r.prev, r.x, r.y);
             }
             return ClosestStationResultConvertToClosestStationList(closeststaion);
         }
