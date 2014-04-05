@@ -18,12 +18,13 @@ namespace CSVtoGoogleMapCS
         List<GPSHistoryData> gpsdatalist { get; set; }
         List<GPSFormatHistoryData> formatgpsdatalist { get; set; }
         public  List<MoveGPSStationHistory> movestationhistory { get; private set;}
-        public List<List<ClosestStation>> listrawcloseststationlist { get; set; }
+        public List<ClosestStationHistory> listrawcloseststationlist { get; set; }
+        public List<ClosestStationHistory> listformatcloseststationlist { get; set; }
         public DataOperation(List<GPSHistoryData> gpsdatalist)
         {
             this.gpsdatalist = gpsdatalist;
             formatgpsdatalist = new List<GPSFormatHistoryData>();
-            listrawcloseststationlist = new List<List<ClosestStation>>();
+            listrawcloseststationlist = new List<ClosestStationHistory>();
             formatGpsHistroyList();
             movestationhistory = calcStation();
 
@@ -139,7 +140,7 @@ namespace CSVtoGoogleMapCS
                     {
                         person.setStatusStopping();
                         tempgpshis.Add(gpsdata);
-                        Debug.WriteLine("line={0}", i);
+                        //Debug.WriteLine("line={0}", i);
                     }
                 }
                 else if (Person.MovingStatus.stopping == person.getStatus())
@@ -162,28 +163,133 @@ namespace CSVtoGoogleMapCS
             {
 
                 //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
-                listrawcloseststationlist.Add(requestStationList(temp));
+                listrawcloseststationlist.Add(new ClosestStationHistory(requestStationList(temp),temp.Datetime));
             }
-            int j = 0;
-            foreach (var closeststationlist in listrawcloseststationlist)
-            {
-                j++;
-                Debug.WriteLine(j+": "+closeststationlist[0].name);
-            }
+            //int j = 0;
+            //foreach (var closeststationlist in listrawcloseststationlist)
+            //{
+            //    j++;
+            //    Debug.WriteLine(j+": "+closeststationlist[0].name);
+            //}
 
             System.IO.StreamWriter sw2 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebug.csv");
             sw2.WriteLine("最寄駅一覧"+","+"駅名"+","+"路線名"+","+"距離"+","+"前の駅"+","+"次の駅"+","+"駅の緯度"+","+"駅の経度");
-            foreach (var closeststationlist in listrawcloseststationlist)
+            foreach (var closeststationgroup in listrawcloseststationlist)
             {
                 sw2.WriteLine("停止");
-                foreach (var closeststation in closeststationlist)
+                DateTime attime = closeststationgroup.date;
+                foreach (var closeststation in closeststationgroup.closeststationlist)
                 {
-                    sw2.WriteLine("," + closeststation.name + ","+ closeststation.line+","+closeststation.distance+","+closeststation.prev+","+closeststation.next+","+closeststation.x+","+closeststation.y);
+                    sw2.WriteLine("," + closeststation.name + ","+ closeststation.line+","+closeststation.distance+","+closeststation.prev+","+closeststation.next+","+closeststation.x+","+closeststation.y+","+attime);
                 }
             }
             sw2.Close();
 
+            formatClosestStationList(listrawcloseststationlist);
+            
+
             return movestationlist;
+        }
+
+        public List<ClosestStationHistory> formatClosestStationList(List<ClosestStationHistory> rawcloseststationlist)
+        {
+            List<ClosestStationHistory> pre1formatClosestStationList = new List<ClosestStationHistory>();
+            List<ClosestStationHistory> pre2formatClosestStationList = new List<ClosestStationHistory>();
+            List<ClosestStationHistory> formatClosestStationList = new List<ClosestStationHistory>();
+            //同じ路線は最も近い駅に設定する
+            foreach (ClosestStationHistory rawcloseststationset in rawcloseststationlist)
+            {
+                List<ClosestStation> tempcloseststationset = new List<ClosestStation>();
+                foreach (ClosestStation closeststation in rawcloseststationset.closeststationlist)
+                {
+                    Boolean isSameLine = false;
+                    if (tempcloseststationset != null)
+                    {
+                        foreach (ClosestStation tempcloseststation in tempcloseststationset)
+                        {
+                            if (tempcloseststation.line.Equals(closeststation.line))
+                            {
+                                isSameLine = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isSameLine == false)
+                    {
+                        tempcloseststationset.Add(closeststation);
+                    }
+                }
+                pre1formatClosestStationList.Add(new ClosestStationHistory(tempcloseststationset,rawcloseststationset.date));
+            }
+
+            System.IO.StreamWriter swformat1 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugFormat1.csv");
+            swformat1.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
+            foreach (var closeststationgroup in pre1formatClosestStationList)
+            {
+                swformat1.WriteLine("停止");
+                DateTime attime = closeststationgroup.date;
+                foreach (var closeststation in closeststationgroup.closeststationlist)
+                {
+                    swformat1.WriteLine("," + closeststation.name + "," + closeststation.line + "," + closeststation.distance + "," + closeststation.prev + "," + closeststation.next + "," + closeststation.x + "," + closeststation.y + "," + attime);
+                }
+            }
+            swformat1.Close();
+
+            //同じ停車駅Listの場合は最も遅いものを選択する
+            ClosestStationHistory nowcloseststationhistoryset=null;
+            ClosestStationHistory lastcloseststationhistroyset = null;
+            foreach (ClosestStationHistory nextcloseststationset in pre1formatClosestStationList)
+            {
+                if (nowcloseststationhistoryset == null)
+                {
+                    nowcloseststationhistoryset = nextcloseststationset;
+                    lastcloseststationhistroyset = nextcloseststationset;
+                    continue;
+                }
+                else if (nowcloseststationhistoryset.closeststationlist.Count != nextcloseststationset.closeststationlist.Count)
+                {
+                    pre2formatClosestStationList.Add(nowcloseststationhistoryset);
+                    nowcloseststationhistoryset = nextcloseststationset;
+                    lastcloseststationhistroyset = nextcloseststationset;
+                    continue;
+                }
+                else
+                {
+                    ClosestStation[] nowcloseststationarray = nowcloseststationhistoryset.closeststationlist.ToArray();
+                    ClosestStation[] nextcloseststationarray = nextcloseststationset.closeststationlist.ToArray();
+                    for (int i = 0; i < nowcloseststationhistoryset.closeststationlist.Count; i++)
+                    {
+                        if (!(nowcloseststationarray[i].name.Equals(nextcloseststationarray[i].name)))
+                        {
+                            pre2formatClosestStationList.Add(nowcloseststationhistoryset);
+                            break;
+                        }
+                    }
+                }
+                nowcloseststationhistoryset = nextcloseststationset;
+                lastcloseststationhistroyset = nextcloseststationset;
+
+            }
+            pre2formatClosestStationList.Add(lastcloseststationhistroyset);
+
+            formatClosestStationList = pre2formatClosestStationList;
+            //同じ
+
+
+            System.IO.StreamWriter swformat = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugFormat2.csv");
+            swformat.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
+            foreach (var closeststationgroup in formatClosestStationList)
+            {
+                swformat.WriteLine("停止");
+                DateTime attime = closeststationgroup.date;
+                foreach (var closeststation in closeststationgroup.closeststationlist)
+                {
+                    swformat.WriteLine("," + closeststation.name + "," + closeststation.line + "," + closeststation.distance + "," + closeststation.prev + "," + closeststation.next + "," + closeststation.x + "," + closeststation.y + "," + attime);
+                }
+            }
+            swformat.Close();
+
+            return pre1formatClosestStationList;
         }
 
         //緯度と経度から最寄駅のリストを検索する
