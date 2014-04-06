@@ -90,8 +90,7 @@ namespace CSVtoGoogleMapCS
                 prespeed = nowspeed;
             }
 
-
-            System.IO.StreamWriter sw = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\test.csv");
+            System.IO.StreamWriter sw = FileOperation.DebugStreamWriter("test.csv");
             foreach (var tempformat in formatgpsdatalist)
             {
                 sw.WriteLine(tempformat.Datetime+","+tempformat.Latitude+","+tempformat.Longitude+","+tempformat.speed);
@@ -155,8 +154,8 @@ namespace CSVtoGoogleMapCS
 
                 }
             }
-            Debug.WriteLine(tempgpshis.Count());
-            System.IO.StreamWriter sw = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\test2.csv");
+
+            System.IO.StreamWriter sw = FileOperation.DebugStreamWriter("test2.csv");
             foreach (var value in tempgpshis)
             {
                 sw.WriteLine(value.Datetime + "," + value.Latitude + "," + value.Longitude + "," + value.speed);
@@ -166,8 +165,7 @@ namespace CSVtoGoogleMapCS
             {
                 listrawcloseststationlist.Add(new ClosestStationHistory(requestStationList(temp), temp.Datetime));
             }
-
-            System.IO.StreamWriter sw2 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebug.csv");
+            System.IO.StreamWriter sw2 = FileOperation.DebugStreamWriter("StationDebug.csv");
             sw2.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
             foreach (var closeststationgroup in listrawcloseststationlist)
             {
@@ -186,13 +184,10 @@ namespace CSVtoGoogleMapCS
 
             List<ClosestStationHistory> tocalccloseststationhistorylist = new List<ClosestStationHistory>();
 
-            System.IO.StreamWriter swLEAVE = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugLEAVE.csv");
+            System.IO.StreamWriter swLEAVE = FileOperation.DebugStreamWriter("StationDebugLEAVE.csv");
             for (int j = 0; j < closeststationhistoryarray.Length; j++)
             {
                 ClosestStationHistory closeststationhistroyset = closeststationhistoryarray[j];
-                String useline;
-                String usestation;
-                DateTime leavetime;
 
                 //次がない場合
                 if (j+1 >= closeststationhistoryarray.Length)
@@ -266,13 +261,13 @@ namespace CSVtoGoogleMapCS
             return movestationlist;
         }
 
-        public List<ClosestStationHistory> formatClosestStationList(List<ClosestStationHistory> rawcloseststationlist)
+
+        //同じ路線は最も近い駅のみを残して削除
+        public List<ClosestStationHistory> formatClosestStationListSameLine(List<ClosestStationHistory> rawcloseststaionlist)
         {
-            List<ClosestStationHistory> pre1formatClosestStationList = new List<ClosestStationHistory>();
-            List<ClosestStationHistory> pre2formatClosestStationList = new List<ClosestStationHistory>();
             List<ClosestStationHistory> formatClosestStationList = new List<ClosestStationHistory>();
-            //同じ路線は最も近い駅に設定する
-            foreach (ClosestStationHistory rawcloseststationset in rawcloseststationlist)
+
+            foreach (ClosestStationHistory rawcloseststationset in rawcloseststaionlist)
             {
                 List<ClosestStation> tempcloseststationset = new List<ClosestStation>();
                 foreach (ClosestStation closeststation in rawcloseststationset.closeststationlist)
@@ -294,26 +289,20 @@ namespace CSVtoGoogleMapCS
                         tempcloseststationset.Add(closeststation);
                     }
                 }
-                pre1formatClosestStationList.Add(new ClosestStationHistory(tempcloseststationset,rawcloseststationset.date));
+                formatClosestStationList.Add(new ClosestStationHistory(tempcloseststationset, rawcloseststationset.date));
             }
 
-            System.IO.StreamWriter swformat1 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugFormat1.csv");
-            swformat1.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
-            foreach (var closeststationgroup in pre1formatClosestStationList)
-            {
-                swformat1.WriteLine("停止");
-                DateTime attime = closeststationgroup.date;
-                foreach (var closeststation in closeststationgroup.closeststationlist)
-                {
-                    swformat1.WriteLine("," + closeststation.name + "," + closeststation.line + "," + closeststation.distance + "," + closeststation.prev + "," + closeststation.next + "," + closeststation.x + "," + closeststation.y + "," + attime);
-                }
-            }
-            swformat1.Close();
+            return formatClosestStationList;
+        }
 
-            //同じ停車駅Listの場合は最も遅いものを選択する
-            ClosestStationHistory nowcloseststationhistoryset=null;
+        //同じ停車駅Listの場合は最も遅いものを選択する
+        public List<ClosestStationHistory> formatClosestStationListSameStation(List<ClosestStationHistory> rawcloseststationlist)
+        {
+            List<ClosestStationHistory> formatClosestStationList = new List<ClosestStationHistory>();
+
+            ClosestStationHistory nowcloseststationhistoryset = null;
             ClosestStationHistory lastcloseststationhistroyset = null;
-            foreach (ClosestStationHistory nextcloseststationset in pre1formatClosestStationList)
+            foreach (ClosestStationHistory nextcloseststationset in rawcloseststationlist)
             {
                 if (nowcloseststationhistoryset == null)
                 {
@@ -323,7 +312,7 @@ namespace CSVtoGoogleMapCS
                 }
                 else if (nowcloseststationhistoryset.closeststationlist.Count != nextcloseststationset.closeststationlist.Count)
                 {
-                    pre2formatClosestStationList.Add(nowcloseststationhistoryset);
+                    formatClosestStationList.Add(nowcloseststationhistoryset);
                     nowcloseststationhistoryset = nextcloseststationset;
                     lastcloseststationhistroyset = nextcloseststationset;
                     continue;
@@ -336,7 +325,7 @@ namespace CSVtoGoogleMapCS
                     {
                         if (!(nowcloseststationarray[i].name.Equals(nextcloseststationarray[i].name)))
                         {
-                            pre2formatClosestStationList.Add(nowcloseststationhistoryset);
+                            formatClosestStationList.Add(nowcloseststationhistoryset);
                             break;
                         }
                     }
@@ -345,13 +334,42 @@ namespace CSVtoGoogleMapCS
                 lastcloseststationhistroyset = nextcloseststationset;
 
             }
-            pre2formatClosestStationList.Add(lastcloseststationhistroyset);
+            formatClosestStationList.Add(lastcloseststationhistroyset);
+
+            return formatClosestStationList;
+        }
+
+        //駅をフォーマットして出力
+        public List<ClosestStationHistory> formatClosestStationList(List<ClosestStationHistory> rawcloseststationlist)
+        {
+            List<ClosestStationHistory> pre1formatClosestStationList = new List<ClosestStationHistory>();
+            List<ClosestStationHistory> pre2formatClosestStationList = new List<ClosestStationHistory>();
+            List<ClosestStationHistory> formatClosestStationList = new List<ClosestStationHistory>();
+
+            //同じ路線は最も近い駅に設定する
+            pre1formatClosestStationList = formatClosestStationListSameLine(rawcloseststationlist);
+
+            System.IO.StreamWriter swformat1 = FileOperation.DebugStreamWriter("StationDebugFormat1.csv");
+            swformat1.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
+            foreach (var closeststationgroup in pre1formatClosestStationList)
+            {
+                swformat1.WriteLine("停止");
+                DateTime attime = closeststationgroup.date;
+                foreach (var closeststation in closeststationgroup.closeststationlist)
+                {
+                    swformat1.WriteLine("," + closeststation.name + "," + closeststation.line + "," + closeststation.distance + "," + closeststation.prev + "," + closeststation.next + "," + closeststation.x + "," + closeststation.y + "," + attime);
+                }
+            }
+            swformat1.Close();
+
+
+            //同じ停車駅Listの場合は最も遅いものを選択する
+            pre2formatClosestStationList = formatClosestStationListSameStation(pre1formatClosestStationList);
+
 
             formatClosestStationList = pre2formatClosestStationList;
-            //同じ
 
-
-            System.IO.StreamWriter swformat = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugFormat2.csv");
+            System.IO.StreamWriter swformat = FileOperation.DebugStreamWriter("StationDebugFormat2.csv");
             swformat.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
             foreach (var closeststationgroup in formatClosestStationList)
             {
@@ -404,7 +422,6 @@ namespace CSVtoGoogleMapCS
         {
             return new ClosestStation(csrrs.distance, csrrs.line, csrrs.name, csrrs.next, csrrs.postal, csrrs.prev, csrrs.x, csrrs.y);
         }
-
 
     }
 

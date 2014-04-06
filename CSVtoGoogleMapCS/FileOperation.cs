@@ -22,6 +22,16 @@ namespace CSVtoGoogleMapCS
             return true;
         }
 
+        public static System.IO.StreamWriter DebugStreamWriter(String debugfilename){
+            String outputfile;
+                outputfile = getDebugOutputDirctoryPath()+debugfilename;
+            if(!System.IO.Directory.Exists(getDebugOutputDirctoryPath())){
+                System.IO.Directory.CreateDirectory(getDebugOutputDirctoryPath());
+            }
+            return new System.IO.StreamWriter(outputfile);
+        }
+
+
         private Boolean setGPSDataList()
         {
             if (this.InputFilePath == null)
@@ -41,13 +51,9 @@ namespace CSVtoGoogleMapCS
                 strcsv = srcsv.ReadLine();
             }
             srcsv.Close();
-    
-            
             return true;
 
-        }
-
-        
+        }        
 
         public Boolean csvToHTML()
         {
@@ -207,6 +213,21 @@ namespace CSVtoGoogleMapCS
                 outputfile = OutputDirctoryPath + "\\" + InputFilePath.Substring(start, end);
             }
             return outputfile;
+        }
+
+        private static String getDebugOutputDirctoryPath()
+        {
+            String outputdirctory = "C:\\Users\\tasopo\\Documents\\CSV\\Debug\\";
+            //if (this.OutputDirctoryPath == null)
+            //{
+            //    outputdirctory = this.InputFilePath.Substring(0,this.InputFilePath.LastIndexOf("\\")-1)+"Debug"+"\\";
+            //}
+            //else
+            //{
+            //    outputdirctory = OutputDirctoryPath+"Debug"+"\\";
+            //}
+            
+            return outputdirctory;
         }
     }
 }

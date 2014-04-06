@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="ClosestStation.cs" />
     <Compile Include="ClosestStationHistory.cs" />
-    <Compile Include="ClosestStationHistory_2.cs" />
     <Compile Include="DataOperation.cs" />
     <Compile Include="FileOperation.cs" />
     <Compile Include="Form1.cs">
