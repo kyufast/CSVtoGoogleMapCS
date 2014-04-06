@@ -194,12 +194,12 @@ namespace CSVtoGoogleMapCS
                 {
                     break;
                 }
-                //一つしか駅がない場合
-                if (closeststationhistroyset.closeststationlist.Count == 1)
-                {
-                    tocalccloseststationhistorylist.Add(closeststationhistroyset);
-                }
-                else//駅や路線が複数ある場合
+                ////一つしか駅がない場合
+                //if (closeststationhistroyset.closeststationlist.Count == 1)
+                //{
+                //    tocalccloseststationhistorylist.Add(closeststationhistroyset);
+                //}
+                //else//駅や路線が複数ある場合
                 {
                     List<ClosestStation> tempcloseststaionlist = new List<ClosestStation>();
                     List<ClosestStation> tempnextcloseststationlist = new List<ClosestStation>();
@@ -211,6 +211,8 @@ namespace CSVtoGoogleMapCS
                         {
                             if (nowcloseststation.line.Equals(nextcloseststation.line))
                             {
+                                //nextに次の駅名が入る
+                                nowcloseststation.next = nextcloseststation.name;
                                 tempcloseststaionlist.Add(nowcloseststation);
                                 tempnextcloseststationlist.Add(nextcloseststation);
                                 break;
@@ -254,7 +256,7 @@ namespace CSVtoGoogleMapCS
             foreach (var tocalccloseststationhistory in tocalccloseststationhistorylist)
             {
                 swLEAVE.WriteLine("駅");
-                swLEAVE.WriteLine("," + tocalccloseststationhistory.closeststationlist[0].name + "," + tocalccloseststationhistory.closeststationlist[0].line + "," + tocalccloseststationhistory.date);
+                swLEAVE.WriteLine("," + tocalccloseststationhistory.closeststationlist[0].name + "," + tocalccloseststationhistory.closeststationlist[0].line + "," + tocalccloseststationhistory.date+","+tocalccloseststationhistory.closeststationlist[0].next+","+tocalccloseststationhistory.closeststationlist[0].prev);
             }
             swLEAVE.Close();
 
@@ -422,6 +424,12 @@ namespace CSVtoGoogleMapCS
         {
             return new ClosestStation(csrrs.distance, csrrs.line, csrrs.name, csrrs.next, csrrs.postal, csrrs.prev, csrrs.x, csrrs.y);
         }
+
+        //路線名を渡すとその路線の駅の情報が帰ってくるメソッド
+        //public List<StationInformation> requestStationListOnLine(String linename)
+        //{
+
+        //}
 
     }
 
