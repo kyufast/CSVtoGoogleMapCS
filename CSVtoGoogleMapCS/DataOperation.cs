@@ -95,7 +95,6 @@ namespace CSVtoGoogleMapCS
             foreach (var tempformat in formatgpsdatalist)
             {
                 sw.WriteLine(tempformat.Datetime+","+tempformat.Latitude+","+tempformat.Longitude+","+tempformat.speed);
-                //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", tempformat.Latitude, tempformat.Longitude, tempformat.speed);
             }
             //閉じる
             sw.Close();
@@ -142,8 +141,6 @@ namespace CSVtoGoogleMapCS
                         if (gpsdata.speed <= 0.5)
                         {
                             person.setStatusStopping();
-                            //tempgpshis.Add(gpsdata);
-                            //Debug.WriteLine("line={0}", i);
                         }
                     }
                     else if (Person.MovingStatus.stopping == person.getStatus())
@@ -167,16 +164,8 @@ namespace CSVtoGoogleMapCS
             sw.Close();
             foreach (var temp in tempgpshis)
             {
-
-                //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
                 listrawcloseststationlist.Add(new ClosestStationHistory(requestStationList(temp), temp.Datetime));
             }
-            //int j = 0;
-            //foreach (var closeststationlist in listrawcloseststationlist)
-            //{
-            //    j++;
-            //    Debug.WriteLine(j+": "+closeststationlist[0].name);
-            //}
 
             System.IO.StreamWriter sw2 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebug.csv");
             sw2.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
@@ -214,9 +203,6 @@ namespace CSVtoGoogleMapCS
                 if (closeststationhistroyset.closeststationlist.Count == 1)
                 {
                     tocalccloseststationhistorylist.Add(closeststationhistroyset);
-                    //usestation = closeststationhistroyset.closeststationlist[0].name;
-                    //useline = closeststationhistroyset.closeststationlist[0].line;
-                    //leavetime = closeststationhistroyset.date;
                 }
                 else//駅や路線が複数ある場合
                 {
@@ -263,9 +249,6 @@ namespace CSVtoGoogleMapCS
                         }
                     }
 
-                    //usestation = tempcloseststationarray[minimumindex].name;
-                    //useline = tempcloseststationarray[minimumindex].line;
-                    //leavetime = closeststationhistroyset.date;
                     List<ClosestStation> tempcloseststationlist = new List<ClosestStation>();
                     tempcloseststaionlist.Add(tempcloseststationarray[minimumindex]);
                     ClosestStationHistory tempans = new ClosestStationHistory(tempcloseststaionlist, closeststationhistroyset.date);
@@ -391,10 +374,6 @@ namespace CSVtoGoogleMapCS
             String baseurl = "http://express.heartrails.com/api/json?method=getStations";
             String x = postion.Longitude.ToString();
             String y = postion.Latitude.ToString();
-            //String x = "135.0";
-            //String y = "35.0";
-            //String x = "139.766092";
-            //String y = "35.681283";
             String url = baseurl + "&x=" + x + "&y=" + y;
 
             var req = WebRequest.Create(url);
@@ -407,12 +386,6 @@ namespace CSVtoGoogleMapCS
                     var serializer = new DataContractJsonSerializer(typeof(ClosestStationResult));
                     closeststaion = (ClosestStationResult)serializer.ReadObject(resStream);
                 }
-            }
-            //Debug.WriteLine("message: " + closeststaion.response);
-            //Debug.WriteLine("record count: " + closeststaion.response.station.Count);
-            foreach (var r in closeststaion.response.station)
-            {
-                //Debug.WriteLine(" distance={0}, line={1}, name={2},\n next={3}, postal={4}, prev={5},\n x={6}, y={7}", r.distance, r.line, r.name, r.next, r.postal, r.prev, r.x, r.y);
             }
             return ClosestStationResultConvertToClosestStationList(closeststaion);
         }
@@ -434,8 +407,6 @@ namespace CSVtoGoogleMapCS
 
 
     }
-
-    
 
 
     [DataContract]

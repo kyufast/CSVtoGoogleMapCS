@@ -16,7 +16,6 @@ namespace CSVtoGoogleMapCS
         {
             setGPSDataList();
             DataOperation dataoperation = new DataOperation(gpsdatalist);
-            //dataoperation.requestStationList(gpsdatalist[0]);
             csvToHTML();
             csvToHTMLGraph();
 
@@ -90,7 +89,6 @@ namespace CSVtoGoogleMapCS
                     }                    
                 }
                 str = sr.ReadLine();
-                //System.Diagnostics.Debug.WriteLine(sr.ReadLine());
             }
             //閉じる
             sw.Close();
@@ -118,7 +116,6 @@ namespace CSVtoGoogleMapCS
               System.IO.StreamReader("..\\..\\Graph.html");
             System.IO.StreamWriter sw = new System.IO.StreamWriter(outputfile);
 
-
             //行数によってある程度グラフのよみ飛ばし
             {
                 System.IO.StreamReader srcsv = new System.IO.StreamReader(InputFilePath);
@@ -140,7 +137,6 @@ namespace CSVtoGoogleMapCS
                     pass = 1;
                 }
             }
-
 
             String str = sr.ReadLine();
             while (sr.Peek() > -1)
