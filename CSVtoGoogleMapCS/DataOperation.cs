@@ -106,51 +106,57 @@ namespace CSVtoGoogleMapCS
         {
             List<MoveGPSStationHistory> movestationlist = new List<MoveGPSStationHistory>();
             List<GPSFormatHistoryData> tempgpshis = new List<GPSFormatHistoryData>();
-            
+            List<ClosestStationHistory> closeststationhistorylist = new List<ClosestStationHistory>();
+
             Person person = new Person();
 
             GPSFormatHistoryData[] formatgpsdataarray = formatgpsdatalist.ToArray();
 
-            if(formatgpsdataarray == null){
+            if (formatgpsdataarray == null)
+            {
                 return null;
             }
-
-            int i = 0;
-            foreach (var gpsdata in formatgpsdataarray)
             {
-                i++;
-                //始め
-                if (person.getStatus() == Person.MovingStatus.start)
+                int i = 0;
+                foreach (var gpsdata in formatgpsdataarray)
                 {
-                    if (gpsdata.speed <= 1.0)
+                    i++;
+                    //始め
+                    if (person.getStatus() == Person.MovingStatus.start)
                     {
-                        person.setStatusStopping();
+                        if (gpsdata.speed <= 1.0)
+                        {
+                            person.setStatusStopping();
+                        }
+                        else
+                        {
+                            person.setStatusOnTrain();
+                        }
+                        continue;
                     }
-                    else
-                    {
-                        person.setStatusOnTrain();
-                    }
-                    continue;
-                }
 
-                //2つ目以降
-                if (Person.MovingStatus.ontrain == person.getStatus())
-                {
-                    if (gpsdata.speed <= 0.5)
+                    //2つ目以降
+                    if (Person.MovingStatus.ontrain == person.getStatus())
                     {
-                        person.setStatusStopping();
-                        tempgpshis.Add(gpsdata);
-                        //Debug.WriteLine("line={0}", i);
+                        //停止
+                        if (gpsdata.speed <= 0.5)
+                        {
+                            person.setStatusStopping();
+                            //tempgpshis.Add(gpsdata);
+                            //Debug.WriteLine("line={0}", i);
+                        }
                     }
-                }
-                else if (Person.MovingStatus.stopping == person.getStatus())
-                {
-                    if (gpsdata.speed > 15.0)
+                    else if (Person.MovingStatus.stopping == person.getStatus())
                     {
-                        person.setStatusOnTrain();
+                        //動き出す
+                        if (gpsdata.speed > 15.0)
+                        {
+                            tempgpshis.Add(gpsdata);
+                            person.setStatusOnTrain();
+                        }
                     }
+
                 }
-                
             }
             Debug.WriteLine(tempgpshis.Count());
             System.IO.StreamWriter sw = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\test2.csv");
@@ -163,7 +169,7 @@ namespace CSVtoGoogleMapCS
             {
 
                 //Debug.WriteLine(" Latitude={0}, Longitude={1}, speed={2}", temp.Latitude, temp.Longitude, temp.speed);
-                listrawcloseststationlist.Add(new ClosestStationHistory(requestStationList(temp),temp.Datetime));
+                listrawcloseststationlist.Add(new ClosestStationHistory(requestStationList(temp), temp.Datetime));
             }
             //int j = 0;
             //foreach (var closeststationlist in listrawcloseststationlist)
@@ -173,20 +179,106 @@ namespace CSVtoGoogleMapCS
             //}
 
             System.IO.StreamWriter sw2 = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebug.csv");
-            sw2.WriteLine("最寄駅一覧"+","+"駅名"+","+"路線名"+","+"距離"+","+"前の駅"+","+"次の駅"+","+"駅の緯度"+","+"駅の経度");
+            sw2.WriteLine("最寄駅一覧" + "," + "駅名" + "," + "路線名" + "," + "距離" + "," + "前の駅" + "," + "次の駅" + "," + "駅の緯度" + "," + "駅の経度");
             foreach (var closeststationgroup in listrawcloseststationlist)
             {
                 sw2.WriteLine("停止");
                 DateTime attime = closeststationgroup.date;
                 foreach (var closeststation in closeststationgroup.closeststationlist)
                 {
-                    sw2.WriteLine("," + closeststation.name + ","+ closeststation.line+","+closeststation.distance+","+closeststation.prev+","+closeststation.next+","+closeststation.x+","+closeststation.y+","+attime);
+                    sw2.WriteLine("," + closeststation.name + "," + closeststation.line + "," + closeststation.distance + "," + closeststation.prev + "," + closeststation.next + "," + closeststation.x + "," + closeststation.y + "," + attime);
                 }
             }
             sw2.Close();
 
-            formatClosestStationList(listrawcloseststationlist);
-            
+
+            closeststationhistorylist = formatClosestStationList(listrawcloseststationlist);
+            ClosestStationHistory[] closeststationhistoryarray = closeststationhistorylist.ToArray();
+
+            List<ClosestStationHistory> tocalccloseststationhistorylist = new List<ClosestStationHistory>();
+
+            System.IO.StreamWriter swLEAVE = new System.IO.StreamWriter("C:\\Users\\tasopo\\Documents\\CSV\\StationDebugLEAVE.csv");
+            for (int j = 0; j < closeststationhistoryarray.Length; j++)
+            {
+                ClosestStationHistory closeststationhistroyset = closeststationhistoryarray[j];
+                String useline;
+                String usestation;
+                DateTime leavetime;
+
+                //次がない場合
+                if (j+1 >= closeststationhistoryarray.Length)
+                {
+                    break;
+                }
+                //一つしか駅がない場合
+                if (closeststationhistroyset.closeststationlist.Count == 1)
+                {
+                    tocalccloseststationhistorylist.Add(closeststationhistroyset);
+                    //usestation = closeststationhistroyset.closeststationlist[0].name;
+                    //useline = closeststationhistroyset.closeststationlist[0].line;
+                    //leavetime = closeststationhistroyset.date;
+                }
+                else//駅や路線が複数ある場合
+                {
+                    List<ClosestStation> tempcloseststaionlist = new List<ClosestStation>();
+                    List<ClosestStation> tempnextcloseststationlist = new List<ClosestStation>();
+                    List<ClosestStation> nowcloseststationlist = new List<ClosestStation>();
+                    nowcloseststationlist = closeststationhistroyset.closeststationlist;
+                    foreach (ClosestStation nowcloseststation in nowcloseststationlist)
+                    {
+                        foreach (ClosestStation nextcloseststation in closeststationhistoryarray[j + 1].closeststationlist)
+                        {
+                            if (nowcloseststation.line.Equals(nextcloseststation.line))
+                            {
+                                tempcloseststaionlist.Add(nowcloseststation);
+                                tempnextcloseststationlist.Add(nextcloseststation);
+                                break;
+                            }
+                        }
+                    }
+                    ClosestStation[] tempcloseststationarray = tempcloseststaionlist.ToArray();
+                    ClosestStation[] tempnextcloseststationarray = tempnextcloseststationlist.ToArray();
+                    int templength = tempnextcloseststationarray.Length;
+                    int[] sumdistance = new int[templength];
+                    int minimum=-1;
+                    int minimumindex=-1;
+                    for (int k = 0; k < tempcloseststationarray.Length; k++)
+                    {
+                        sumdistance[k] = (int.Parse(tempcloseststationarray[k].distance.Replace("m","")) +int.Parse(tempnextcloseststationarray[k].distance.Replace("m","")));
+                    }
+                    for (int k = 0; k < sumdistance.Length; k++)
+                    {
+                        if (k == 0)
+                        {
+                            minimum = sumdistance[k];
+                            minimumindex = k;
+                        }
+                        else
+                        {
+                            if (minimum > sumdistance[k])
+                            {
+                                minimum = sumdistance[k];
+                                minimumindex = k;
+                            }
+                        }
+                    }
+
+                    //usestation = tempcloseststationarray[minimumindex].name;
+                    //useline = tempcloseststationarray[minimumindex].line;
+                    //leavetime = closeststationhistroyset.date;
+                    List<ClosestStation> tempcloseststationlist = new List<ClosestStation>();
+                    tempcloseststaionlist.Add(tempcloseststationarray[minimumindex]);
+                    ClosestStationHistory tempans = new ClosestStationHistory(tempcloseststaionlist, closeststationhistroyset.date);
+                    tocalccloseststationhistorylist.Add(tempans);
+                }
+
+            }
+            foreach (var tocalccloseststationhistory in tocalccloseststationhistorylist)
+            {
+                swLEAVE.WriteLine("駅");
+                swLEAVE.WriteLine("," + tocalccloseststationhistory.closeststationlist[0].name + "," + tocalccloseststationhistory.closeststationlist[0].line + "," + tocalccloseststationhistory.date);
+            }
+            swLEAVE.Close();
 
             return movestationlist;
         }
@@ -289,7 +381,7 @@ namespace CSVtoGoogleMapCS
             }
             swformat.Close();
 
-            return pre1formatClosestStationList;
+            return formatClosestStationList;
         }
 
         //緯度と経度から最寄駅のリストを検索する
