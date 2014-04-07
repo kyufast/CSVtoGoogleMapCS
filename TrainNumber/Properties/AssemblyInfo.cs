@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("ConnectionTest")]
+[assembly: AssemblyTitle("TrainNumber")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ConnectionTest")]
+[assembly: AssemblyProduct("TrainNumber")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 次の GUID は、このプロジェクトが COM に公開される場合の、typelib の ID です
-[assembly: Guid("74501f0d-d729-4bc6-8864-8dbcb184a69c")]
+[assembly: Guid("8041f07f-355c-4a2b-8c30-876168eb3482")]
 
 // アセンブリのバージョン情報は、以下の 4 つの値で構成されています:
 //
