@@ -134,14 +134,6 @@ class WebOpenRead
         sw.Close();
     }
 
-    public String getUPorDown(String nowstationname, String nextstationname, String linename)
-    {
-        //上り,下り
-        String direction = "不明";
-        String baseURL = "http://express.heartrails.com/api/json?method=getStations&line=";
 
-
-        return direction;
-    }
 
 }

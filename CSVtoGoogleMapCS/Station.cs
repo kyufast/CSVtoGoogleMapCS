@@ -8,6 +8,17 @@ namespace CSVtoGoogleMapCS
 {
     public class Station
     {
+        public Station() { }
+        public Station(String line, String name, String next, int postal, String prev, double x, double y)
+        {
+            this.line = line;
+            this.name = name;
+            this.next = next;
+            this.postal = postal;
+            this.prev = prev;
+            this.x = x;
+            this.y = y;
+        }
         public string line { get; set; }
         public string name { get; set; }
         public string next { get; set; }
