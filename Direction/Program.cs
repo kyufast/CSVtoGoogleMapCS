@@ -15,6 +15,13 @@ namespace Direction
     {
         static void Main(string[] args)
         {
+            StationInfoOperation stationinfooperation = new StationInfoOperation();
+            //stationinfooperation.getUPorDown("甲府","身延","JR身延線");
+        }
+
+        void test()
+        {
+
         }
 
 

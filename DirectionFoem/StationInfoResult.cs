@@ -20,7 +20,7 @@ namespace Direction
         public class Response
         {
             [DataMember]
-            public List<StationInfo> stationinfo { get; set; }
+            public List<StationInfo> station { get; set; }
 
             [DataContract]
             public class StationInfo
@@ -33,6 +33,8 @@ namespace Direction
                 public string next { get; set; }
                 [DataMember]
                 public int postal { get; set; }
+                [DataMember]
+                public string prefecture { get; set; }
                 [DataMember]
                 public string prev { get; set; }
                 [DataMember]

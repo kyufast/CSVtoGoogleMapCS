@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrainNumber", "TrainNumber\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Direction", "Direction\Direction.csproj", "{0FCEC748-BF35-4D43-8A52-4A47D5C08C25}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectionForm", "DirectionFoem\DirectionForm.csproj", "{90F7F6AF-CEC7-43E7-8FD4-ACCB0E896D95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0FCEC748-BF35-4D43-8A52-4A47D5C08C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FCEC748-BF35-4D43-8A52-4A47D5C08C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FCEC748-BF35-4D43-8A52-4A47D5C08C25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90F7F6AF-CEC7-43E7-8FD4-ACCB0E896D95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90F7F6AF-CEC7-43E7-8FD4-ACCB0E896D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90F7F6AF-CEC7-43E7-8FD4-ACCB0E896D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90F7F6AF-CEC7-43E7-8FD4-ACCB0E896D95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

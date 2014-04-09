@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Direction
 {
-    class StationInfo : Station
+    public class StationInfo : Station
     {
         public String prefecture { get; set;}
         public StationInfo(String line, String name, String next, int postal, String prefecture, String prev, double x, double y)
