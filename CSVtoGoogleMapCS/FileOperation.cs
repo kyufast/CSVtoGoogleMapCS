@@ -15,7 +15,7 @@ namespace CSVtoGoogleMapCS
         public Boolean calcLogToGoogleMap()
         {
             setGPSDataList();
-            DataOperation dataoperation = new DataOperation(gpsdatalist);
+            //DataOperation dataoperation = new DataOperation(gpsdatalist);
             csvToHTML();
             csvToHTMLGraph();
 
@@ -217,7 +217,8 @@ namespace CSVtoGoogleMapCS
 
         private static String getDebugOutputDirctoryPath()
         {
-            String outputdirctory = "C:\\Users\\tasopo\\Documents\\CSV\\Debug\\";
+            //Console.WriteLine(System.Environment.CurrentDirectory);
+            String outputdirctory = System.Environment.CurrentDirectory+"\\";
             //if (this.OutputDirctoryPath == null)
             //{
             //    outputdirctory = this.InputFilePath.Substring(0,this.InputFilePath.LastIndexOf("\\")-1)+"Debug"+"\\";
